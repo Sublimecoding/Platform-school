@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My English Class</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<!--
+SETUP (2 minutes for demo, 10 for live):
+1. Upload this file as index.html to a GitHub repo -> Settings -> Pages -> Deploy from branch (main, root).
+2. It works immediately in DEMO MODE (data saved in each browser only).
+3. To go LIVE (shared between teacher and students):
+   - console.firebase.google.com -> new project -> Build -> Authentication -> enable Email/Password
+   - Build -> Firestore Database -> create (production mode) -> Rules tab -> paste:
+     rules_version='2'; service cloud.firestore { match /databases/{d}/documents { match /{c}/{id} { allow read, write: if request.auth != null; } } }
+   - Project settings -> Your apps -> Web app -> copy the firebaseConfig object into CONFIG.firebase below.
+   - Authentication -> Settings -> Authorized domains -> add yourname.github.io
+4. Change teacherCode below. Students pick "Student", you pick "Teacher" + code when creating accounts.
+-->
+<style>
+:root{--bg:#EEF2F8;--ink:#1B2240;--blue:#2A3FA8;--sun:#F2A93B;--mint:#2FA37C;--rose:#D9486B;--line:#D5DCEA;--mute:#5C6685}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Nunito,system-ui,sans-serif}
+h1,h2,h3,.brand{font-family:'Baloo 2',sans-serif;line-height:1.15;margin:.3em 0}
+h1{font-size:2.6rem;font-weight:800}h2{font-size:1.7rem}h3{font-size:1.2rem}
+small{color:var(--mute);display:block}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+a{color:var(--blue);font-weight:700}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+.pre{white-space:pre-wrap;overflow-wrap:anywhere}
+label{display:block;font-weight:700;margin:10px 0}
+input:not([type=checkbox]):not([type=radio]),textarea,select{display:block;width:100%;margin-top:4px;padding:10px;border:2px solid var(--line);border-radius:10px;background:#fff;font-weight:400}
+textarea{resize:vertical}
+.btn{background:var(--blue);color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#22338c}
+.err{color:var(--rose);font-weight:700;min-height:1.4em}
+.empty{color:var(--mute);padding:12px 0}
+.row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.row label{margin:0}
+/* login */
+.login{display:grid;grid-template-columns:1fr 380px;gap:32px;max-width:960px;margin:0 auto;padding:40px 20px;align-items:center}
+.band{height:48px;border-radius:10px;margin-bottom:20px;background:linear-gradient(135deg,var(--sun) 25%,transparent 25%) -12px 0/24px 24px,linear-gradient(225deg,var(--sun) 25%,transparent 25%) -12px 0/24px 24px,linear-gradient(315deg,var(--sun) 25%,transparent 25%) 0 0/24px 24px,linear-gradient(45deg,var(--sun) 25%,var(--blue) 25%) 0 0/24px 24px}
+.hero p{font-size:1.2rem;color:var(--mute);max-width:30ch}
+.sw{text-align:center;margin:12px 0 0}
+/* shell */
+.demo{background:var(--sun);text-align:center;padding:6px 12px;font-weight:700;font-size:.9rem}
+header{background:var(--blue);color:#fff;display:flex;gap:16px;align-items:center;padding:8px 20px;flex-wrap:wrap}
+.brand{font-size:1.4rem;font-weight:800}
+nav{display:flex;gap:6px;flex:1}
+nav button,.who button{background:transparent;border:0;color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-weight:700}
+nav button.on{background:#fff;color:var(--blue)}
+.who{font-weight:700;display:flex;align-items:center;gap:6px}
+.who button{border:1px solid #ffffff80;padding:4px 12px;font-size:.85rem}
+main{max-width:860px;margin:0 auto;padding:20px}
+/* homework */
+.hw{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;font-size:1rem}
+.hw:hover{border-color:var(--blue)}
+.pill{padding:3px 12px;border-radius:999px;font-size:.85rem;font-weight:700;background:#E3E8F5;white-space:nowrap}
+.pill.todo{background:#FFF0D0}.pill.late{background:#FBD9E2;color:#9B2142}.pill.ok{background:#D5F0E5;color:#1B6E4F}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stats div{flex:1;min-width:110px;background:#fff;border-radius:14px;padding:12px 16px;border-left:6px solid var(--sun)}
+.stats b{font-family:'Baloo 2';font-size:2rem}
+.stats span{display:block;color:var(--mute);font-size:.9rem}
+.note{background:#fff;border-left:6px solid var(--blue);border-radius:10px;padding:10px 14px;margin:8px 0}
+.fb{border-left:6px solid var(--mint)}
+.stars{color:var(--sun);font-size:1.3rem;letter-spacing:2px}
+fieldset{border:1px solid var(--line);border-radius:10px;margin:12px 0}
+legend{font-weight:700;padding:0 6px}
+.chk{font-weight:400;margin:4px 0}
+.moods{display:flex;gap:16px;flex-wrap:wrap}.moods label{font-weight:400;margin:0}
+.miss{display:flex;justify-content:space-between;align-items:center}
+/* chat */
+.chat{display:grid;gap:12px}.chat.two{grid-template-columns:200px 1fr}
+.sl{display:flex;flex-direction:column;gap:4px}
+.sl button{text-align:left;padding:8px 12px;border:1px solid var(--line);background:#fff;border-radius:10px;cursor:pointer;font-weight:700}
+.sl button.on{background:var(--blue);color:#fff}
+.pane{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column}
+.msgs{height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px}
+.b{max-width:80%;padding:8px 12px;border-radius:14px;background:#E9EDF7;white-space:pre-wrap;overflow-wrap:anywhere}
+.b.me{align-self:flex-end;background:var(--blue);color:#fff}
+.b small{font-size:.75rem;color:inherit;opacity:.7}
+.cf{display:flex;gap:8px;margin-top:10px}.cf input{margin:0!important}
+@media(max-width:700px){.login{grid-template-columns:1fr}h1{font-size:2rem}.chat.two{grid-template-columns:1fr}.sl{flex-direction:row;flex-wrap:wrap}}
+</style></head>
+<body><div id="app"></div>
+<script>
+const CONFIG={
+  className:"My English Class",
+  teacherCode:"change-me-123",
+  firebase:null  // paste your firebaseConfig here, e.g. {apiKey:"...",authDomain:"...",projectId:"...",appId:"..."}
+};
+
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const S={uid:null,users:[],hw:[],subs:[],msgs:[],ann:[],view:'home',sel:null,chatWith:null,mode:'in',err:''};
+const iso=()=>new Date().toISOString().slice(0,10);
+const D=d=>d?new Date(d+'T00:00').toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'}):'';
+const T=t=>new Date(t).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const me=()=>S.users.find(u=>u.id===S.uid);
+const students=()=>S.users.filter(u=>u.role==='student');
+const subOf=(h,s)=>S.subs.find(x=>x.hw===h&&x.student===s);
+const stars=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+const lnk=(u,t)=>/^https?:\/\//i.test(u||'')?`<p><a href="${esc(u)}" target="_blank" rel="noopener">${t} ↗</a></p>`:'';
+const MOOD={hard:'😟 Hard',ok:'😐 OK',easy:'🙂 Easy'};
+
+/* ---------- storage backends ---------- */
+const L={
+  ls:{},
+  get(c){try{return JSON.parse(localStorage.getItem('cl_'+c))||[]}catch(e){return[]}},
+  put(c,a){localStorage.setItem('cl_'+c,JSON.stringify(a));L.emit(c)},
+  sub(c,cb){(L.ls[c]=L.ls[c]||[]).push(cb);cb(L.get(c))},
+  emit(c){(L.ls[c]||[]).forEach(f=>f(L.get(c)))},
+  async add(c,o){o.id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);L.put(c,[...L.get(c),o])},
+  async set(c,id,p){const a=L.get(c);L.put(c,a.some(x=>x.id===id)?a.map(x=>x.id===id?{...x,...p}:x):[...a,{id,...p}])}
+};
+addEventListener('storage',e=>{if(e.key&&e.key.startsWith('cl_'))L.emit(e.key.slice(3))});
+let db;
+const F={
+  sub(c,cb){db.collection(c).onSnapshot(s=>cb(s.docs.map(d=>({id:d.id,...d.data()}))))},
+  add(c,o){return db.collection(c).add(o)},
+  set(c,id,p){return db.collection(c).doc(id).set(p,{merge:true})}
+};
+let B=L,subbed=false;
+const load=u=>new Promise(r=>{const s=document.createElement('script');s.src=u;s.onload=r;document.head.appendChild(s)});
+
+async function boot(){
+  if(CONFIG.firebase){
+    const v='https://www.gstatic.com/firebasejs/10.12.2/firebase-';
+    await load(v+'app-compat.js');await Promise.all([load(v+'auth-compat.js'),load(v+'firestore-compat.js')]);
+    firebase.initializeApp(CONFIG.firebase);db=firebase.firestore();B=F;
+    firebase.auth().onAuthStateChanged(u=>{S.uid=u?u.uid:null;start()});
+  }else{S.uid=localStorage.getItem('cl_uid');start()}
+}
+function start(){
+  if(S.uid&&!subbed){subbed=true;['users','hw','subs','msgs','ann'].forEach(c=>B.sub(c,a=>{S[c]=a;render()}))}
+  else if(!CONFIG.firebase&&!subbed){subbed=true;B.sub('users',a=>{S.users=a})}
+  render();
+}
+
+/* ---------- auth ---------- */
+async function doAuth(d){
+  S.err='';
+  try{
+    const email=d.email.trim().toLowerCase();
+    if(S.mode==='up'){
+      const role=d.role,name=(d.name||'').trim();
+      if(!name)throw Error('Please write your name.');
+      if(role==='teacher'&&d.code!==CONFIG.teacherCode)throw Error('Wrong teacher code.');
+      let uid;
+      if(CONFIG.firebase)uid=(await firebase.auth().createUserWithEmailAndPassword(email,d.password)).user.uid;
+      else{if(S.users.some(u=>u.email===email))throw Error('This email already has an account. Log in instead.');uid='u'+Date.now().toString(36)}
+      await B.set('users',uid,{name,email,role,created:Date.now()});
+      if(!CONFIG.firebase)signIn(uid);
+    }else{
+      if(CONFIG.firebase)await firebase.auth().signInWithEmailAndPassword(email,d.password);
+      else{const u=S.users.find(u=>u.email===email);if(!u)throw Error('No account with this email. Create one first.');signIn(u.id)}
+    }
+  }catch(e){S.err=e.message.replace('Firebase: ','');render()}
+}
+function signIn(uid){localStorage.setItem('cl_uid',uid);S.uid=uid;S.view='home';start()}
+async function signOut(){if(CONFIG.firebase)await firebase.auth().signOut();localStorage.removeItem('cl_uid');location.reload()}
+
+/* ---------- views ---------- */
+function loginView(){
+  const up=S.mode==='up';
+  return `<div class="login"><div class="hero"><div class="band"></div><h1>${esc(CONFIG.className)}</h1><p>Homework, feedback and chat with your teacher, all in one place.</p></div>
+  <form class="card" data-f="auth"><h2>${up?'Create your account':'Log in'}</h2>
+  ${up?'<label>Your name<input id="n" name="name" required></label>':''}
+  <label>Email<input id="e" name="email" type="email" required></label>
+  <label>Password<input id="p" name="password" type="password" minlength="6" required></label>
+  ${up?'<label>I am a<select id="r" name="role"><option value="student">Student</option><option value="teacher">Teacher</option></select></label><label>Teacher code (teachers only)<input id="c" name="code"></label>':''}
+  <div class="err">${esc(S.err)}</div><button class="btn" style="width:100%">${up?'Create account':'Log in'}</button>
+  <p class="sw">${up?'Already have an account?':'New here?'} <a href="#" data-a="mode">${up?'Log in':'Create an account'}</a></p></form></div>`;
+}
+function shell(body){
+  const m=me(),t=m.role==='teacher';
+  const tabs=[['home',t?'Dashboard':'Today'],['hw','Homework'],['chat','Chat']];
+  return `${CONFIG.firebase?'':'<div class="demo">Demo mode: data stays in this browser only. Add Firebase to share it with students.</div>'}
+  <header><span class="brand">${esc(CONFIG.className)}</span><nav>${tabs.map(([v,l])=>`<button class="${S.view===v?'on':''}" data-a="tab" data-v="${v}">${l}</button>`).join('')}</nav>
+  <span class="who">${esc(m.name)} <button data-a="out">Log out</button></span></header><main>${body}</main>`;
+}
+function annList(){
+  const a=[...S.ann].sort((x,y)=>y.created-x.created).slice(0,3);
+  return a.map(x=>`<div class="note pre">${esc(x.text)}<small>${T(x.created)}</small></div>`).join('');
+}
+function hwCard(h){
+  const m=me();let pill='',cls='';
+  if(m.role==='student'){
+    const s=subOf(h.id,m.id);
+    if(!s){const late=h.due&&h.due<iso();pill=late?'Overdue':'To do';cls=late?'late':'todo'}
+    else if(s.reviewed){pill=s.stars?'Reviewed '+stars(s.stars):'Reviewed';cls='ok'}
+    else{pill='Sent';cls='ok'}
+  }else{pill=`${S.subs.filter(s=>s.hw===h.id).length} / ${students().length} sent`}
+  return `<button class="card hw" data-a="open" data-id="${h.id}"><span><b>${esc(h.title)}</b><small>${h.due?'Due '+D(h.due):'No due date'}</small></span><span class="pill ${cls}">${pill}</span></button>`;
+}
+const byNew=a=>[...a].sort((x,y)=>y.created-x.created);
+
+function sHome(){
+  const m=me(),mine=S.subs.filter(s=>s.student===m.id);
+  const todo=S.hw.filter(h=>!subOf(h.id,m.id)).sort((a,b)=>(a.due||'9')>(b.due||'9')?1:-1);
+  const st=mine.reduce((n,s)=>n+(s.stars||0),0);
+  return `<h2>Hi ${esc(m.name.split(' ')[0])}!</h2>
+  <div class="stats"><div><b>${todo.length}</b><span>homework to do</span></div><div><b>${mine.length}</b><span>sent so far</span></div><div><b>${st}</b><span>stars earned</span></div></div>
+  ${annList()}${todo.length?'<h3>Next up</h3>'+hwCard(todo[0]):'<p class="empty">You are all caught up. Great work!</p>'}`;
+}
+function sList(){return `<h2>Homework</h2>${S.hw.length?byNew(S.hw).map(hwCard).join(''):'<p class="empty">No homework yet. Enjoy your free time!</p>'}`}
+function sHw(){
+  const h=S.hw.find(x=>x.id===S.sel);if(!h)return '';
+  const m=me(),s=subOf(h.id,m.id);
+  let out=`<a href="#" data-a="back">‹ All homework</a><h2>${esc(h.title)}</h2><small>${h.due?'Due '+D(h.due):'No due date'}</small>
+  <div class="card pre">${esc(h.text)}</div>${lnk(h.link,'Open homework material')}`;
+  if(s){
+    out+=`<div class="card"><h3>Your work <small style="display:inline">sent ${T(s.created)}</small></h3><div class="pre">${esc(s.text)}</div>${lnk(s.link,'Your link')}<small>Self-check: ${s.checks}/3 ${s.mood?'· '+MOOD[s.mood]:''}</small></div>`;
+    out+=s.reviewed?`<div class="card fb"><h3>Teacher feedback</h3>${s.stars?`<div class="stars">${stars(s.stars)}</div>`:''}<div class="pre">${esc(s.feedback||'Well done!')}</div></div>`:'<p class="empty">Your teacher will give feedback soon.</p>';
+  }else{
+    out+=`<form class="card" data-f="sub"><h3>Your work</h3>
+    <label>Write your answer<textarea id="ans" name="text" rows="6" required></textarea></label>
+    <label>Link to your work (optional)<input id="lk" name="link" type="url" placeholder="Google Drive, photo, video link"></label>
+    <fieldset><legend>Before you send</legend>
+    <label class="chk"><input type="checkbox" name="chk" id="c1"> I read the instructions</label>
+    <label class="chk"><input type="checkbox" name="chk" id="c2"> I checked spelling and capital letters</label>
+    <label class="chk"><input type="checkbox" name="chk" id="c3"> I am happy with my work</label></fieldset>
+    <fieldset><legend>How was this homework?</legend><div class="moods">${Object.entries(MOOD).map(([k,v])=>`<label><input type="radio" name="mood" id="m${k}" value="${k}"> ${v}</label>`).join('')}</div></fieldset>
+    <button class="btn">Send to teacher</button></form>`;
+  }
+  return out;
+}
+function tHome(){
+  const wait=S.subs.filter(s=>!s.reviewed).sort((a,b)=>a.created-b.created);
+  return `<h2>Dashboard</h2>
+  <div class="stats"><div><b>${students().length}</b><span>students</span></div><div><b>${S.hw.length}</b><span>homework posted</span></div><div><b>${wait.length}</b><span>waiting for feedback</span></div></div>
+  <form class="card" data-f="ann"><h3>Post an announcement</h3><label>Message for everyone<textarea id="at" name="text" rows="2" required></textarea></label><button class="btn">Post</button></form>
+  ${annList()}
+  <h3>Waiting for feedback</h3>${wait.map(s=>{const h=S.hw.find(x=>x.id===s.hw);return `<button class="card hw" data-a="open" data-id="${s.hw}"><span><b>${esc(s.name)}</b><small>${esc(h?h.title:'')}</small></span><span class="pill todo">Review</span></button>`}).join('')||'<p class="empty">Nothing to review right now.</p>'}`;
+}
+function tList(){
+  return `<h2>Homework</h2><form class="card" data-f="hw"><h3>New homework</h3>
+  <label>Title<input id="ht" name="title" required></label>
+  <label>Instructions<textarea id="hx" name="text" rows="4" required></textarea></label>
+  <div class="row"><label style="flex:1">Link (optional)<input id="hl" name="link" type="url"></label><label>Due date<input id="hd" name="due" type="date"></label></div>
+  <button class="btn">Post homework</button></form>
+  ${S.hw.length?byNew(S.hw).map(hwCard).join(''):'<p class="empty">No homework posted yet.</p>'}`;
+}
+function tHw(){
+  const h=S.hw.find(x=>x.id===S.sel);if(!h)return '';
+  const rows=students().map(u=>{
+    const s=subOf(h.id,u.id);
+    if(!s)return `<div class="card miss"><b>${esc(u.name)}</b><span class="pill todo">Not sent yet</span></div>`;
+    return `<div class="card"><div class="row"><b>${esc(u.name)}</b><small>${T(s.created)}</small></div><div class="pre">${esc(s.text)}</div>${lnk(s.link,'Open link')}
+    <small>Self-check ${s.checks}/3 ${s.mood?'· felt '+MOOD[s.mood]:''}</small>
+    <form data-f="fb" data-id="${s.id}"><label>Feedback<textarea id="fb${s.id}" name="feedback" rows="2">${esc(s.feedback||'')}</textarea></label>
+    <div class="row"><label>Stars <select id="st${s.id}" name="stars" style="width:auto;display:inline-block">${[0,1,2,3,4,5].map(n=>`<option value="${n}"${(s.stars||0)===n?' selected':''}>${n}</option>`).join('')}</select></label>
+    <button class="btn">${s.reviewed?'Update feedback':'Save feedback'}</button></div></form></div>`;
+  }).join('');
+  return `<a href="#" data-a="back">‹ All homework</a><h2>${esc(h.title)}</h2><small>${h.due?'Due '+D(h.due):'No due date'}</small>
+  <div class="card pre">${esc(h.text)}</div>${rows||'<p class="empty">No students have joined yet.</p>'}`;
+}
+function chat(){
+  const m=me(),stu=m.role==='student',th=stu?m.id:S.chatWith;
+  const side=stu?'':`<div class="sl">${students().map(u=>`<button class="${u.id===th?'on':''}" data-a="who" data-id="${u.id}">${esc(u.name)}</button>`).join('')||'<p class="empty">No students yet.</p>'}</div>`;
+  const ms=S.msgs.filter(x=>x.thread===th).sort((a,b)=>a.created-b.created);
+  const pane=th?`<div class="msgs" id="ms">${ms.map(x=>`<div class="b ${x.from===m.role?'me':''}"><small>${esc(x.name)} · ${T(x.created)}</small>${esc(x.text)}</div>`).join('')||'<p class="empty">No messages yet. Say hello!</p>'}</div>
+  <form class="cf" data-f="chat"><input id="ci" name="text" autocomplete="off" placeholder="Write a message"><button class="btn">Send</button></form>`:'<p class="empty">Choose a student to start chatting.</p>';
+  return `<h2>Chat</h2><div class="chat ${stu?'':'two'}">${side}<div class="pane">${pane}</div></div>`;
+}
+function view(){
+  const t=me().role==='teacher';
+  if(S.view==='chat')return chat();
+  if(S.view==='hw')return S.sel?(t?tHw():sHw()):(t?tList():sList());
+  return t?tHome():sHome();
+}
+
+/* ---------- render (keeps what people are typing) ---------- */
+function render(){
+  const app=$('#app'),keep={};
+  app.querySelectorAll('[id]').forEach(e=>{if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.tagName))keep[e.id]=[e.value,e.checked]});
+  const fa=document.activeElement&&document.activeElement.id;
+  if(!S.uid)app.innerHTML=loginView();
+  else if(!me())app.innerHTML='<main><p class="empty">Loading… <a href="#" data-a="out">Log out</a></p></main>';
+  else app.innerHTML=shell(view());
+  for(const id in keep){const e=document.getElementById(id);if(!e)continue;if(e.type==='checkbox'||e.type==='radio')e.checked=keep[id][1];else e.value=keep[id][0]}
+  if(fa){const e=document.getElementById(fa);if(e)e.focus()}
+  const ms=$('#ms');if(ms)ms.scrollTop=ms.scrollHeight;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-a]');if(!el)return;
+  e.preventDefault();const a=el.dataset.a;
+  if(a==='mode'){S.mode=S.mode==='in'?'up':'in';S.err=''}
+  else if(a==='tab'){S.view=el.dataset.v;S.sel=null}
+  else if(a==='open'){S.view='hw';S.sel=el.dataset.id}
+  else if(a==='back')S.sel=null;
+  else if(a==='who')S.chatWith=el.dataset.id;
+  else if(a==='out')return signOut();
+  render();
+});
+document.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const f=e.target,k=f.dataset.f,d=Object.fromEntries(new FormData(f)),m=me();
+  if(k==='auth')return doAuth(d);
+  if(k==='hw'){f.reset();await B.add('hw',{title:d.title.trim(),text:d.text.trim(),link:d.link.trim(),due:d.due,created:Date.now()})}
+  if(k==='ann'){f.reset();await B.add('ann',{text:d.text.trim(),created:Date.now()})}
+  if(k==='sub')await B.add('subs',{hw:S.sel,student:m.id,name:m.name,text:d.text.trim(),link:d.link.trim(),checks:f.querySelectorAll('[name=chk]:checked').length,mood:d.mood||'',created:Date.now()});
+  if(k==='chat'){
+    const t=d.text.trim(),th=m.role==='student'?m.id:S.chatWith;if(!t||!th)return;
+    f.reset();await B.add('msgs',{thread:th,from:m.role,name:m.name,text:t,created:Date.now()});
+  }
+  if(k==='fb')await B.set('subs',f.dataset.id,{feedback:d.feedback.trim(),stars:+d.stars||0,reviewed:Date.now()});
+  render();
+});
+boot();
+</script></body></html>
